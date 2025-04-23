@@ -13,7 +13,7 @@ import matplotlib.patches as patches
 # Variables
 #----------------------------------------------------------------------------#
 
-
+horizon_len = 4 
 cube_x_pos = [2,3,2,3,0,1,0,1,2,3,2,3,4,5,4,5,2,3,2,3,2,3,2,3]
 cube_y_pos = [7,7,6,6,5,5,4,4,5,5,4,4,5,5,4,4,3,3,2,2,1,1,0,0]
 
@@ -85,16 +85,7 @@ def plot_cube(cube):
     # Show the plot
     plt.show()
     
-def calculate_obj(current_cube, obj_cube):
-    """Calculates the objective function of the current cube configuration vs 
-    the desired cube configuration"""
-    matches = current_cube[:,0] == obj_cube[:,0]  # This gives a boolean array of True/False
-    match_count = np.sum(matches)  # Count of True values (i.e., matches)
 
-    # Return match count or process it however you want
-    return 24 - match_count
-    
-    
     
 #----------------------------------------------------------------------------#
 # Cube Operations
@@ -255,6 +246,72 @@ BACK_CW = np.array([ [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],#1 TOP
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],#23
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],])#24
 #----------------------------------------------------------------------------#
+# Cube Operation Functions
+#----------------------------------------------------------------------------#
+topCW = lambda cube: TOP_CW @ cube
+topFT = lambda cube: TOP_CW @ TOP_CW @ cube
+topCCW = lambda cube: TOP_CW @ TOP_CW @ TOP_CW @ cube
+
+leftCW = lambda cube: LEFT_CW @ cube
+leftFT = lambda cube: LEFT_CW @ LEFT_CW @ cube
+leftCCW = lambda cube: LEFT_CW @ LEFT_CW @ LEFT_CW @ cube
+
+frontCW = lambda cube: FRONT_CW @ cube
+frontFT = lambda cube: FRONT_CW @ FRONT_CW @ cube
+frontCCW = lambda cube: FRONT_CW @ FRONT_CW @ FRONT_CW @ cube
+
+rightCW = lambda cube: RIGHT_CW @ cube
+rightFT = lambda cube: RIGHT_CW @ RIGHT_CW @ cube
+rightCCW = lambda cube: RIGHT_CW @ RIGHT_CW @ RIGHT_CW @ cube
+
+bottomCW = lambda cube: BOTTOM_CW @ cube
+bottomFT = lambda cube: BOTTOM_CW @ BOTTOM_CW @ cube
+bottomCCW = lambda cube: BOTTOM_CW @ BOTTOM_CW @ BOTTOM_CW @ cube
+
+backCW = lambda cube: BACK_CW @ cube
+backFT = lambda cube: BACK_CW @ BACK_CW @ cube
+backCCW = lambda cube: BACK_CW @ BACK_CW @ BACK_CW @ cube
+
+noturn = lambda cube: cube
+
+cube_operations = {
+    0: topCW,
+    1: topFT,
+    2: topCCW,
+    3: leftCW,
+    4: leftFT,
+    5: leftCCW,
+    6: frontCW,
+    7: frontFT,
+    8: frontCCW,
+    9: rightCW,
+    10: rightFT,
+    11: rightCCW,
+    12: bottomCW,
+    13: bottomFT,
+    14: bottomCCW,
+    15: backCW,
+    16: backFT,
+    17: backCCW,
+    18: noturn
+}
+
+
+#----------------------------------------------------------------------------#
+# Objective Function
+#----------------------------------------------------------------------------#
+
+def calculate_obj(current_cube, obj_cube):
+    """Calculates the objective function of the current cube configuration vs 
+    the desired cube configuration"""
+    matches = current_cube[:,0] == obj_cube[:,0]  # This gives a boolean array of True/False
+    match_count = np.sum(matches)  # Count of True values (i.e., matches)
+
+    # Return match count or process it however you want
+    return 24 - match_count
+
+
+#----------------------------------------------------------------------------#
 # Main Function
 #----------------------------------------------------------------------------#
 
@@ -270,11 +327,14 @@ def main():
     
     cube = np.zeros((24,1))
     cube[:,0] = (np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]))
+    mixed_cube = np.zeros((24,1))
+    mixed_cube = np.array([[21,1,5,2,7,9,8,10,3,14,4,12,23,24,15,16,13,18,11,20,17,22,19,6]])
     plot_cube(cube[:,0])
-    cube_change = LEFT_CW@FRONT_CW@cube # rotation
+    cube_change = cube_operations[0](cube)
+    cube_change = cube_operations[3](cube_change)# rotation
     plot_cube(cube_change[:,0])
-    print("original", cube)
-    print("change", cube_change)
-    print(calculate_obj(cube, cube))
+    # print("original", cube)
+    print("change", cube_change[:,0])
+
 
 main()
