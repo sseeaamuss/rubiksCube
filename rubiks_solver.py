@@ -8,6 +8,7 @@ if successful
 import numpy as np 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import random
 
 #----------------------------------------------------------------------------#
 # Variables
@@ -91,7 +92,7 @@ def plot_cube(cube):
 # Cube Operations
 #----------------------------------------------------------------------------#
                      #1,2,3,4,5,6,7,8,9,1,1,2,3,4,5,6,7,8,9,1,1,2,3,4
-TOP_CW = np.array([[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#1 TOP
+TOP_CW = np.array(  [[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#1 TOP
                      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#2 
                      [0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#3
                      [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#4
@@ -103,8 +104,8 @@ TOP_CW = np.array([[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#1 TOP
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],#10
                      [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],#11
                      [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],#12
-                     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],#13 RIGHT
-                     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],#14
+                     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],#13 RIGHT
+                     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],#14
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],#15
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],#16
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],#17 BOTTOM
@@ -113,8 +114,8 @@ TOP_CW = np.array([[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#1 TOP
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],#20 BACK
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],#21
                      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],#22
-                     [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#23
-                     [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],])#24
+                     [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],#23
+                     [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],])#24
     
                      #1,2,3,4,5,6,7,8,9,1,1,2,3,4,5,6,7,8,9,1,1,2,3,4
 LEFT_CW = np.array([ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],#1 TOP
@@ -296,6 +297,40 @@ cube_operations = {
     18: noturn
 }
 
+cube_operations_str = {
+    0: 'topCW',
+    1: 'topFT',
+    2: 'topCCW',
+    3: 'leftCW',
+    4: 'leftFT',
+    5: 'leftCCW',
+    6: 'frontCW',
+    7: 'frontFT',
+    8: 'frontCCW',
+    9: 'rightCW',
+    10: 'rightFT',
+    11: 'rightCCW',
+    12: 'bottomCW',
+    13: 'bottomFT',
+    14: 'bottomCCW',
+    15: 'backCW',
+    16: 'backFT',
+    17: 'backCCW',
+    18: 'noturn'
+}
+
+
+def scramble_cube(cube, scramble_length=3, seed=None):
+    if seed is not None:
+        random.seed(seed)
+
+    scramble_sequence = random.choices(range(18), k=scramble_length)
+    for move in scramble_sequence:
+        cube = cube_operations[move](cube)
+
+    return cube, scramble_sequence
+
+
 
 #----------------------------------------------------------------------------#
 # Objective Function
@@ -304,11 +339,40 @@ cube_operations = {
 def calculate_obj(current_cube, obj_cube):
     """Calculates the objective function of the current cube configuration vs 
     the desired cube configuration"""
-    matches = current_cube[:,0] == obj_cube[:,0]  # This gives a boolean array of True/False
+    matches = current_cube == obj_cube  # This gives a boolean array of True/False
     match_count = np.sum(matches)  # Count of True values (i.e., matches)
 
     # Return match count or process it however you want
     return 24 - match_count
+
+#----------------------------------------------------------------------------#
+# Cube Solving algorithms
+#----------------------------------------------------------------------------#
+
+def solve_planning_prob(current_cube, cube_desired):
+    
+   
+    n = 0
+    min_value = 24
+
+    for i in range(len(cube_operations)):
+        for j in range(len(cube_operations)):
+            for k in range(len(cube_operations)):
+                n += 1
+                
+                cube_update = cube_operations[i](current_cube)
+                cube_update = cube_operations[j](cube_update)
+                cube_update = cube_operations[k](cube_update) 
+                cost = calculate_obj(cube_update, cube_desired)
+                if cost < min_value:
+                    min_value = cost
+                
+                print("calculating ",n, "out of ", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+    print("minimum cost",min_value)
+    
+
+
+
 
 
 #----------------------------------------------------------------------------#
@@ -318,23 +382,19 @@ def calculate_obj(current_cube, obj_cube):
 
 
 
-
-
-
-
-
 def main():
     
-    cube = np.zeros((24,1))
-    cube[:,0] = (np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]))
-    mixed_cube = np.zeros((24,1))
-    mixed_cube = np.array([[21,1,5,2,7,9,8,10,3,14,4,12,23,24,15,16,13,18,11,20,17,22,19,6]])
-    plot_cube(cube[:,0])
-    cube_change = cube_operations[0](cube)
-    cube_change = cube_operations[3](cube_change)# rotation
-    plot_cube(cube_change[:,0])
-    # print("original", cube)
-    print("change", cube_change[:,0])
+    cube_desired = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24])
+    cube_mixed = np.array([7,5,22,4,19,16,24,6,20,10,3,12,13,1,15,11,9,18,14,8,2,17,21,23])
+    
+    solve_planning_prob(cube_mixed, cube_desired)
+
+    
+    
+    
+
+    
+
 
 
 main()
