@@ -354,6 +354,7 @@ def solve_planning_prob(current_cube, cube_desired):
    
     n = 0
     min_value = 24
+    
 
     for i in range(len(cube_operations)):
         for j in range(len(cube_operations)):
@@ -364,11 +365,15 @@ def solve_planning_prob(current_cube, cube_desired):
                 cube_update = cube_operations[j](cube_update)
                 cube_update = cube_operations[k](cube_update) 
                 cost = calculate_obj(cube_update, cube_desired)
+
                 if cost < min_value:
                     min_value = cost
+                    moveset = (i,j,k)
                 
-                print("calculating ",n, "out of ", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+                print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
     print("minimum cost",min_value)
+    print("optimal moves", moveset)
+    
     
 
 
