@@ -60,7 +60,7 @@ color_map_2 = {
 
 
 
-def plot_cube(cube):
+def plot_cube(cube, itr=None):
     """This function plots the 2d unfolded layout of the 2*2*2 cube"""
     fig, ax = plt.subplots()
     
@@ -79,6 +79,7 @@ def plot_cube(cube):
     plt.annotate('Right', xy=(4, 9), xytext=(6.5, 6.5))
     plt.annotate('Bottom', xy=(4, 9), xytext=(2.5, 3))
     plt.annotate('Back', xy=(4, 9), xytext=(2.5, 1))
+    plt.annotate(itr, xy=(1,1), xytext=(1,1))
     
     plt.tick_params(axis='x', labelbottom=False)  # Remove x-axis values
     plt.tick_params(axis='y', labelleft=False)    # Remove y-axis values
@@ -319,8 +320,57 @@ cube_operations_str = {
     18: 'noturn'
 }
 
+inverse_operations = {
+    0: 2,
+    1: 1,
+    2: 0,
+    3: 5,
+    4: 4,
+    5: 3,
+    6: 8,
+    7: 7,
+    8: 6,
+    9: 11,
+    10: 10,
+    11: 9,
+    12: 14,
+    13: 13,
+    14: 12,
+    15: 17,
+    16: 16,
+    17: 15,
+    18: 18
+    }
 
-def scramble_cube(cube, scramble_length=3, seed=None):
+#----------------------------------------------------------------------------#
+# Print Operations Function
+#----------------------------------------------------------------------------#
+
+def return_operations(operations):
+    
+    operations_str = len(operations) * [0]
+    for i in range(len(operations)):
+        operations_str[i] = cube_operations_str[operations[i]]
+        
+    return operations_str
+ 
+#----------------------------------------------------------------------------#
+# Return Inverted Operations Function
+#----------------------------------------------------------------------------#
+def return_inverted_operations(operations):
+    
+    inverted_operations = np.zeros(len(operations))
+    for i in range(len(operations)):
+        inverted_operations[-1-i] = inverse_operations[operations[i]]
+    
+    return inverted_operations
+
+#----------------------------------------------------------------------------#
+# Scramble Function
+#----------------------------------------------------------------------------#
+
+
+def scramble_cube(cube, scramble_length=4, seed=None):
     if seed is not None:
         random.seed(seed)
 
@@ -354,7 +404,7 @@ def solve_planning_prob(current_cube, cube_desired):
    
     n = 0
     min_value = 24
-    
+    moveset = np.zeros(3)
 
     for i in range(len(cube_operations)):
         for j in range(len(cube_operations)):
@@ -368,38 +418,74 @@ def solve_planning_prob(current_cube, cube_desired):
 
                 if cost < min_value:
                     min_value = cost
-                    moveset = (i,j,k)
+                    moveset[0] = i
+                    moveset[1] = j
+                    moveset[2] = k
+                    
                 
-                print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
-    print("minimum cost",min_value)
+                # print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+
+    operations_str = return_operations(moveset)
+    reverse_operations = return_operations(return_inverted_operations(moveset))
+    
+    
+    print()
+    print("minimum cost after 3 moves:",min_value)
     print("optimal moves", moveset)
+    print("moveset", operations_str)
+    # print("inverted moveset", reverse_operations)
+    
+    return moveset
     
     
+    
+def cube_solve_algorithm(initial_cube, desired_cube, nMax):
+    """The Algorithm!"""
+    move_set = [] # set of moves to solve rubiks cube
+    n = 1 # number of iterations
+    loop = True # while loop condition
+    current_cube = initial_cube
+    plot_cube(current_cube, itr = n)
+    
+    
+    while loop:
+        moveset = solve_planning_prob(current_cube, desired_cube)
+        for i in range(len(moveset)):
+            n+=1
+            current_cube = cube_operations[moveset[i]](current_cube)
+            plot_cube(current_cube, itr = n)
+        
+        if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
+            loop = False
 
 
 
-
+    
 
 #----------------------------------------------------------------------------#
 # Main Function
 #----------------------------------------------------------------------------#
+
+cube_mixed_1 = np.array([22, 18, 10, 11, 20, 13, 9, 24, 4, 8, 14, 5, 17, 15, 23, 7, 2, 1, 6, 21, 3, 19, 16, 12])
+# has scramble sequence ['bottomCW', 'backCW', 'backFT', 'backFT', 'leftCCW', 'frontCCW', 
+#                        'topCW', 'leftFT', 'bottomCCW', 'bottomCCW', 'rightFT', 'leftCW', 
+#                        'frontFT', 'leftCW', 'rightFT', 'bottomCCW', 'leftCCW', 'leftCW', 
+#                        'rightCW', 'frontFT']
+
+cube_mixed_2 = np.array([15, 5, 20, 8, 18, 22, 24, 13, 16, 17, 10, 9, 11, 1, 6, 21, 4, 3, 14, 19, 2, 7, 12, 23])
+
+solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
+    
 
 
 
 
 def main():
     
-    cube_desired = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24])
-    cube_mixed = np.array([7,5,22,4,19,16,24,6,20,10,3,12,13,1,15,11,9,18,14,8,2,17,21,23])
-    
-    solve_planning_prob(cube_mixed, cube_desired)
 
-    
-    
-    
+    cube_solve_algorithm(cube_mixed_1, solved_cube, 30)
 
-    
-
+        
 
 
 main()
