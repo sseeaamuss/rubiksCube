@@ -399,7 +399,7 @@ def calculate_obj(current_cube, obj_cube):
 # Cube Solving algorithms
 #----------------------------------------------------------------------------#
 
-def solve_planning_prob(current_cube, cube_desired):
+def solve_planning_prob(current_cube, cube_desired, cube_previous):
     
    
     n = 0
@@ -415,9 +415,13 @@ def solve_planning_prob(current_cube, cube_desired):
                 cube_update = cube_operations[j](cube_update)
                 cube_update = cube_operations[k](cube_update) 
                 cost = calculate_obj(cube_update, cube_desired)
-                cube_difference = calculate_obj(cube_update, current_cube)
                 
-                if (cost != 0) and (cube_difference == 0):
+                cube_difference_current = calculate_obj(cube_update, current_cube)
+                cube_difference_previous = calculate_obj(cube_update, cube_previous)
+                
+                if (cost != 0) and (cube_difference_current == 0):
+                    continue
+                elif (cost !=0) and (cube_difference_previous == 0):
                     continue
                 else:
                     if cost < min_value:
@@ -449,13 +453,15 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
     n = 1 # number of iterations
     loop = True # while loop condition
     current_cube = initial_cube
+    previous_cube = initial_cube
     plot_cube(current_cube, itr = n)
     
     cost_list = [calculate_obj(current_cube, desired_cube)] 
     
     
     while loop:
-        moveset = solve_planning_prob(current_cube, desired_cube)
+        moveset = solve_planning_prob(current_cube, desired_cube, previous_cube)
+        previous_cube = current_cube
         for i in range(len(moveset)):
             n+=1
             current_cube = cube_operations[moveset[i]](current_cube)
@@ -465,7 +471,7 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
             
         if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
             loop = False
-    
+        
     if plot_cost:
         axes = plt.axes()
         nS = np.arange(n)
@@ -499,7 +505,7 @@ solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 def main():
     
 
-    cube_solve_algorithm(cube_mixed_2, solved_cube, 30, plot_cost = True)
+    cube_solve_algorithm(cube_mixed_1, solved_cube, 50, plot_cost = True)
 
         
 
