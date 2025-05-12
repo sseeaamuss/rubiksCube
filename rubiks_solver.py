@@ -506,7 +506,6 @@ def main():
     
 
     cube_solve_algorithm(cube_mixed_1, solved_cube, 50, plot_cost = True)
-
         
 
 
