@@ -399,7 +399,7 @@ def calculate_obj(current_cube, obj_cube):
 # Cube Solving algorithms
 #----------------------------------------------------------------------------#
 
-def solve_planning_prob(current_cube, cube_desired, cube_previous):
+def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     
    
     n = 0
@@ -445,6 +445,112 @@ def solve_planning_prob(current_cube, cube_desired, cube_previous):
     
     return moveset
     
+
+def solve_planning_prob_4(current_cube, cube_desired, cube_previous):
+    
+   
+    n = 0
+    min_value = 24
+    moveset = np.zeros(4)
+
+    for i in range(len(cube_operations)):
+        for j in range(len(cube_operations)):
+            for k in range(len(cube_operations)):
+                for l in range(len(cube_operations)):
+                    n += 1
+                    
+                    cube_update = cube_operations[i](current_cube)
+                    cube_update = cube_operations[j](cube_update)
+                    cube_update = cube_operations[k](cube_update) 
+                    cube_update = cube_operations[l](cube_update)
+                    cost = calculate_obj(cube_update, cube_desired)
+                    
+                    cube_difference_current = calculate_obj(cube_update, current_cube)
+                    cube_difference_previous = calculate_obj(cube_update, cube_previous)
+                    
+                    if (cost != 0) and (cube_difference_current == 0):
+                        continue
+                    elif (cost !=0) and (cube_difference_previous == 0):
+                        continue
+                    else:
+                        if cost < min_value:
+                            min_value = cost
+                            moveset[0] = i
+                            moveset[1] = j
+                            moveset[2] = k
+                            moveset[3] = l
+                    
+                
+                # print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+
+    operations_str = return_operations(moveset)
+    reverse_operations = return_operations(return_inverted_operations(moveset))
+    
+    
+    print()
+    print("minimum cost after 3 moves:",min_value)
+    print("optimal moves", moveset)
+    print("moveset", operations_str)
+    # print("inverted moveset", reverse_operations)
+    
+    return moveset
+    
+def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
+    
+   
+    n = 0
+    min_value = 24
+    moveset = np.zeros(5)
+
+    for i in range(len(cube_operations)):
+        for j in range(len(cube_operations)):
+            for k in range(len(cube_operations)):
+                for l in range(len(cube_operations)):
+                    for m in range(len(cube_operations)):
+                        n += 1
+                        
+                        cube_update = cube_operations[i](current_cube)
+                        cube_update = cube_operations[j](cube_update)
+                        cube_update = cube_operations[k](cube_update) 
+                        cube_update = cube_operations[l](cube_update)
+                        cube_update = cube_operations[m](cube_update)
+                        cost = calculate_obj(cube_update, cube_desired)
+                        
+                        cube_difference_current = calculate_obj(cube_update, current_cube)
+                        cube_difference_previous = calculate_obj(cube_update, cube_previous)
+                        
+                        if (cost != 0) and (cube_difference_current == 0):
+                            continue
+                        elif (cost !=0) and (cube_difference_previous == 0):
+                            continue
+                        else:
+                            if cost < min_value:
+                                min_value = cost
+                                moveset[0] = i
+                                moveset[1] = j
+                                moveset[2] = k
+                                moveset[3] = l
+                                moveset[4] = m
+                    
+                
+                # print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+
+    operations_str = return_operations(moveset)
+    reverse_operations = return_operations(return_inverted_operations(moveset))
+    
+    
+    print()
+    print("minimum cost after 5 moves:",min_value)
+    print("optimal moves", moveset)
+    print("moveset", operations_str)
+    # print("inverted moveset", reverse_operations)
+    
+    return moveset
+
+
+
+
+
     
     
 def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
@@ -460,7 +566,7 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
     
     
     while loop:
-        moveset = solve_planning_prob(current_cube, desired_cube, previous_cube)
+        moveset = solve_planning_prob_5(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
         for i in range(len(moveset)):
             n+=1
@@ -480,6 +586,7 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
         axes.set_ylabel("Cost f(cube, cube*)")
         axes.set_ybound(lower=0, upper=25)
         axes.grid()
+
 
 
     
