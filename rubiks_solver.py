@@ -14,7 +14,6 @@ import random
 # Variables
 #----------------------------------------------------------------------------#
 
-horizon_len = 4 
 cube_x_pos = [2,3,2,3,0,1,0,1,2,3,2,3,4,5,4,5,2,3,2,3,2,3,2,3]
 cube_y_pos = [7,7,6,6,5,5,4,4,5,5,4,4,5,5,4,4,3,3,2,2,1,1,0,0]
 
@@ -370,13 +369,15 @@ def return_inverted_operations(operations):
 #----------------------------------------------------------------------------#
 
 
-def scramble_cube(cube, scramble_length=6, seed=None):
+def scramble_cube(cube, scramble_length=6, seed=None, plot = False):
     if seed is not None:
         random.seed(seed)
 
     scramble_sequence = random.choices(range(18), k=scramble_length)
     for move in scramble_sequence:
         cube = cube_operations[move](cube)
+        if plot:
+            plot_cube(cube)
 
     return cube, scramble_sequence
 
@@ -445,7 +446,6 @@ def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     
     return moveset
     
-
 def solve_planning_prob_4(current_cube, cube_desired, cube_previous):
     
    
@@ -497,7 +497,6 @@ def solve_planning_prob_4(current_cube, cube_desired, cube_previous):
     
 def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
     
-   
     n = 0
     min_value = 24
     moveset = np.zeros(5)
@@ -531,13 +530,11 @@ def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
                                 moveset[2] = k
                                 moveset[3] = l
                                 moveset[4] = m
-                    
-                
+                         
                 # print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
 
     operations_str = return_operations(moveset)
     reverse_operations = return_operations(return_inverted_operations(moveset))
-    
     
     print()
     print("minimum cost after 5 moves:",min_value)
@@ -547,48 +544,76 @@ def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
     
     return moveset
 
-
-
-
-
     
-    
-def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
-    """The Algorithm!"""
-    move_set = [] # set of moves to solve rubiks cube
+def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
+    """The first iteration of the cube solving algorithm with simple greedy horizon look ahead approach"""
     n = 1 # number of iterations
     loop = True # while loop condition
     current_cube = initial_cube
     previous_cube = initial_cube
     plot_cube(current_cube, itr = n)
-    
     cost_list = [calculate_obj(current_cube, desired_cube)] 
-    
     
     while loop:
         
-    #--------------------Solving Planning Problem------------------------------
-        
-        moveset = solve_planning_prob_3(current_cube, desired_cube, previous_cube)
+        #Solving Planning Problem
+        moveset = solve_planning_prob_5(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
         
-    #--------------------Performing Planning Problem Moves---------------------
-    
+        #Performing Planning Problem Moves
         for i in range(len(moveset)):
             n+=1
             current_cube = cube_operations[moveset[i]](current_cube)
-            plot_cube(current_cube, itr = n)
+            # plot_cube(current_cube, itr = n)
+            cost = calculate_obj(current_cube, desired_cube)
+            cost_list.append(cost) 
+        # Check for convergence or timeout        
+        if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
+            loop = False
+        
+    if plot_cost:
+        axes = plt.axes()
+        nS = np.arange(n)
+        axes.plot(nS, np.array(cost_list))
+        axes.set_xlabel("Iterations (n)")
+        axes.set_ylabel("Cost f(cube, cube*)")
+        axes.set_ybound(lower=0, upper=25)
+        axes.grid()
+        plt.show()
+
+
+
+def cube_solve_algorithm_2(initial_cube, desired_cube, nMax, plot_cost = False):
+    """"""
+    n = 1 # number of iterations
+    loop = True # while loop condition
+    current_cube = initial_cube
+    previous_cube = initial_cube
+    plot_cube(current_cube, itr = n)
+    cost_list = [calculate_obj(current_cube, desired_cube)] 
+    
+    while loop:
+        
+        #Solving Planning Problem
+        moveset = solve_planning_prob_5(current_cube, desired_cube, previous_cube)
+        previous_cube = current_cube
+        
+        #Performing Planning Problem Moves
+        for i in range(len(moveset)):
+            n+=1
+            current_cube = cube_operations[moveset[i]](current_cube)
+            # plot_cube(current_cube, itr = n)
             cost = calculate_obj(current_cube, desired_cube)
             cost_list.append(cost)
             
-    #--------------------Adding Random Annealing-------------------------------
-        random_cube, scramble_squence = scramble_cube(current_cube)
-        random_cost = calculate_obj(random_cube, desired_cube)
-        delta_cube = random_cost - cost
+        #Adding Random Annealing
+        # random_cube, scramble_squence = scramble_cube(current_cube)
+        # random_cost = calculate_obj(random_cube, desired_cube)
+        # delta_cube = random_cost - cost
         
         # If the new cube is more solved than the old distance, OR random number is < np.exp 
         
-        if delta_cube < 0:
+
         
         
         if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
@@ -602,6 +627,7 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
         axes.set_ylabel("Cost f(cube, cube*)")
         axes.set_ybound(lower=0, upper=25)
         axes.grid()
+        plt.show()
 
 
 
@@ -619,6 +645,10 @@ cube_mixed_1 = np.array([22, 18, 10, 11, 20, 13, 9, 24, 4, 8, 14, 5, 17, 15, 23,
 
 cube_mixed_2 = np.array([15, 5, 20, 8, 18, 22, 24, 13, 16, 17, 10, 9, 11, 1, 6, 21, 4, 3, 14, 19, 2, 7, 12, 23])
 
+
+cube_mixed_3 = np.array([1,8,3,4,5,6,7,2,9,10,24,12,13,17,15,16,14,18,19,20,21,21,23,11])
+
+
 solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
     
 
@@ -628,7 +658,7 @@ solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 def main():
     
 
-    cube_solve_algorithm(cube_mixed_1, solved_cube, 50, plot_cost = True)
+    cube_solve_algorithm(cube_mixed_3, solved_cube, 50, plot_cost = True)
         
 
 
