@@ -370,7 +370,7 @@ def return_inverted_operations(operations):
 #----------------------------------------------------------------------------#
 
 
-def scramble_cube(cube, scramble_length=4, seed=None):
+def scramble_cube(cube, scramble_length=6, seed=None):
     if seed is not None:
         random.seed(seed)
 
@@ -566,8 +566,14 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
     
     
     while loop:
-        moveset = solve_planning_prob_5(current_cube, desired_cube, previous_cube)
+        
+    #--------------------Solving Planning Problem------------------------------
+        
+        moveset = solve_planning_prob_3(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
+        
+    #--------------------Performing Planning Problem Moves---------------------
+    
         for i in range(len(moveset)):
             n+=1
             current_cube = cube_operations[moveset[i]](current_cube)
@@ -575,6 +581,16 @@ def cube_solve_algorithm(initial_cube, desired_cube, nMax, plot_cost = False):
             cost = calculate_obj(current_cube, desired_cube)
             cost_list.append(cost)
             
+    #--------------------Adding Random Annealing-------------------------------
+        random_cube, scramble_squence = scramble_cube(current_cube)
+        random_cost = calculate_obj(random_cube, desired_cube)
+        delta_cube = random_cost - cost
+        
+        # If the new cube is more solved than the old distance, OR random number is < np.exp 
+        
+        if delta_cube < 0:
+        
+        
         if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
             loop = False
         
