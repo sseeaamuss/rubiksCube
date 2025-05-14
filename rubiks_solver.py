@@ -404,8 +404,9 @@ def calculate_obj(current_cube, obj_cube):
     match_count = np.sum(matches)  # Count of True values (i.e., matches)
 
     # Return match count or process it however you want
-    return 24 - match_count
-
+    obj =  (24 - match_count)
+    
+    return obj
 #----------------------------------------------------------------------------#
 # Cube Solving algorithms
 #----------------------------------------------------------------------------#
@@ -574,7 +575,7 @@ def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
         for i in range(len(moveset)):
             n+=1
             current_cube = cube_operations[moveset[i]](current_cube)
-            # plot_cube(current_cube, itr = n)
+            plot_cube(current_cube, itr = n)
             cost = calculate_obj(current_cube, desired_cube)
             cost_list.append(cost) 
         # Check for convergence or timeout        
@@ -595,6 +596,7 @@ def cube_solve_algorithm_2(initial_cube, desired_cube, nMax, plot_cost = False):
     plot_cube(current_cube, itr = n)
     cost_list = [calculate_obj(current_cube, desired_cube)] 
     
+    
     while loop:
         
         #Solving Planning Problem
@@ -609,18 +611,58 @@ def cube_solve_algorithm_2(initial_cube, desired_cube, nMax, plot_cost = False):
             cost = calculate_obj(current_cube, desired_cube)
             cost_list.append(cost)
             
-        #Adding Random Annealing
-        # random_cube, scramble_squence = scramble_cube(current_cube)
-        # random_cost = calculate_obj(random_cube, desired_cube)
-        # delta_cube = random_cost - cost
-        
-        # If the new cube is more solved than the old distance, OR random number is < np.exp 
         
         if (calculate_obj(current_cube, desired_cube) == 0) or (n >= nMax):
             loop = False
 
     if plot_cost:
         iteration_cost(cost_list,n)
+        
+        
+        
+def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = False):
+    """This solver implements random moves if solution has stagnated"""
+    
+    n = 1 # number of iterations
+    loop = True # while loop condition
+    current_cube = initial_cube
+    previous_cube = initial_cube
+    plot_cube(current_cube, itr = n)
+    
+    cost = calculate_obj(current_cube, desired_cube)
+    cost_list = [cost] 
+    stagnation = 0
+    
+    while loop:
+        
+        if (stagnation > 3):
+            current_cube, _ = scramble_cube(current_cube, scramble_length=20)
+        
+        #Solving Planning Problem
+        moveset = solve_planning_prob_3(current_cube, desired_cube, previous_cube)
+        previous_cube = current_cube
+        previous_cost = cost
+        
+        #Performing Planning Problem Moves
+        for i in range(len(moveset)):
+            n+=1
+            current_cube = cube_operations[moveset[i]](current_cube)
+            plot_cube(current_cube, itr = n)
+            cost = calculate_obj(current_cube, desired_cube)
+            cost_list.append(cost) 
+        # Check for convergence or timeout        
+        if (cost == 0) or (n >= nMax):
+            loop = False
+        
+        if (cost >= previous_cost):
+            stagnation += 1
+        else:
+            stagnation = 0
+        
+
+    if plot_cost:
+        iteration_cost(cost_list,n)
+       
         
 
 #----------------------------------------------------------------------------#
@@ -648,7 +690,7 @@ solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 def main():
     
 
-    cube_solve_algorithm_1(cube_mixed_3, solved_cube, 50, plot_cost = True)
+    cube_solve_algorithm_random(cube_mixed_3, solved_cube, 300, plot_cost = True)
         
 
 
