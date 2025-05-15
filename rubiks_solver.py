@@ -95,7 +95,7 @@ def plot_cube(cube, itr=None):
     plt.annotate('Right', xy=(4, 9), xytext=(6.5, 6.5))
     plt.annotate('Bottom', xy=(4, 9), xytext=(2.5, 3))
     plt.annotate('Back', xy=(4, 9), xytext=(2.5, 1))
-    plt.annotate(itr, xy=(1,1), xytext=(1,1))
+    plt.annotate(itr, xy=(7,1), xytext=(7,1))
     
     plt.tick_params(axis='x', labelbottom=False)  # Remove x-axis values
     plt.tick_params(axis='y', labelleft=False)    # Remove y-axis values
@@ -427,6 +427,44 @@ def calculate_obj(current_cube, obj_cube):
 #----------------------------------------------------------------------------#
 # Cube Solving algorithms
 #----------------------------------------------------------------------------#
+def cube_move_from_moveset(cube, desired_cube, moves, plot = False):
+    """plots an input cube for different input operations provided"""
+    cost_list = [0] * (len(moves) + 1)
+    cost_list[0] = calculate_obj(cube, solved_cube)
+    # plot_cube(cube)
+    i = 0
+    for move in moves:
+        i+=1
+        cube = cube_operations[move](cube)
+        cost_list[i] = calculate_obj(cube, solved_cube)
+        if plot:
+            plot_cube(cube)
+        
+    
+    # print (cost_list)
+    if plot:
+        iteration_cost(cost_list, len(cost_list))
+    return cube
+        
+
+
+
+
+
+def solve_local_min(cube, cube_desired):
+    """checks for local minima and solves """
+    min_1 = cube_move_from_moveset(cube_desired, cube_desired, [1,10,8,11,0,8,1,6,2,11])
+    min_2 = cube_move_from_moveset(cube_desired, cube_desired, [7,10,2,11,0,11,7,9,8,11])
+    
+    if (calculate_obj(cube, min_1) == 0):
+        cube = cube_move_from_moveset(cube, cube_desired,[1,10,8,11,0,8,1,6,2,11])
+    elif (calculate_obj(cube, min_2) == 0):
+        cube = cube_move_from_moveset(cube, cube_desired,[7,10,2,11,0,11,7,9,8,11])
+    else:
+        print("no match :(")
+    
+    return cube
+
 
 def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     
@@ -585,7 +623,7 @@ def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
     while loop:
         
         #Solving Planning Problem
-        moveset = solve_planning_prob_3(current_cube, desired_cube, previous_cube)
+        moveset = solve_planning_prob_4(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
         
         #Performing Planning Problem Moves
@@ -652,7 +690,7 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
     
     while loop:
         
-        if (stagnation > 3):
+        if (stagnation > 5):
             current_cube, _ = scramble_cube(current_cube, scramble_length=20)
         
         #Solving Planning Problem
@@ -664,10 +702,12 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
         for i in range(len(moveset)):
             n+=1
             current_cube = cube_operations[moveset[i]](current_cube)
-            plot_cube(current_cube, itr = n)
             cost = calculate_obj(current_cube, desired_cube)
+            plot_cube(current_cube, itr = cost)
             cost_list.append(cost) 
-        # Check for convergence or timeout        
+        # Check for convergence or timeout 
+        current_cube = solve_local_min(current_cube, desired_cube)
+        
         if (cost == 0) or (n >= nMax):
             loop = False
         
@@ -680,22 +720,6 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
     if plot_cost:
         iteration_cost(cost_list,n)
         
-        
-def cube_move_from_moveset(cube, desired_cube, moves):
-    """plots an input cube for different input operations provided"""
-    cost_list = [0] * (len(moves) + 1)
-    cost_list[0] = calculate_obj(cube, solved_cube)
-    plot_cube(cube)
-    i = 0
-    for move in moves:
-        i+=1
-        cube = cube_operations[move](cube)
-        cost_list[i] = calculate_obj(cube, solved_cube)
-        plot_cube(cube)
-        
-    
-    print (cost_list)
-    iteration_cost(cost_list, len(cost_list))
         
 
 #----------------------------------------------------------------------------#
@@ -710,11 +734,13 @@ def cube_move_from_moveset(cube, desired_cube, moves):
 def main():
     
 
-    # cube_solve_algorithm_1(cube_mixed_3, solved_cube, 300, plot_cost = True)
+    cube_solve_algorithm_random(cube_mixed_1 , solved_cube, 100, plot_cost = True)
     # plot_cube(cube_mixed_3)
-    moveset = [1,10,8,11,0,8,1,6,2,11]
+    # moveset= [10, 1,8,11,6,2,7,0,8,11]
     
-    cube_move_from_moveset(cube_mixed_3, solved_cube, moveset)
+    # print(return_inverted_operations(moveset))
+    
+    # cube_move_from_moveset(solved_cube, solved_cube, moveset)
 
     
 
