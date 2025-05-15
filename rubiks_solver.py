@@ -53,6 +53,23 @@ color_map_2 = {
     24: 'orange'
     }
 
+cube_mixed_1 = np.array([22,18,10,11,20,13,9,24,4,8,14,5,17,15,23,7,2,1,6,21,3,19,16,12])
+# has scramble sequence ['bottomCW', 'backCW', 'backFT', 'backFT', 'leftCCW', 'frontCCW', 
+#                        'topCW', 'leftFT', 'bottomCCW', 'bottomCCW', 'rightFT', 'leftCW', 
+#                        'frontFT', 'leftCW', 'rightFT', 'bottomCCW', 'leftCCW', 'leftCW', 
+#                        'rightCW', 'frontFT']
+
+cube_mixed_2 = np.array([15,5,20,8,18,22,24,13,16,17,10,9,11,1,6,21,4,3,14,19,2,7,12,23])
+
+
+cube_mixed_3 = np.array([1,8,3,4,5,6,7,2,9,10,24,12,13,17,15,16,14,18,19,20,21,22,23,11])
+
+
+solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
+    
+
+
+
 #----------------------------------------------------------------------------#
 # Cube plotting
 #----------------------------------------------------------------------------#
@@ -69,8 +86,8 @@ def plot_cube(cube, itr=None):
         plt.annotate(str(cube[i]), xy=(cube_x_pos[i] + 2.25,cube_y_pos[i]+ 0.5), xytext=(cube_x_pos[i] + 2.25,cube_y_pos[i] + 0.5))
     
     # Set axis limits for better visualization
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 10)
+    ax.set_xlim(2, 8)
+    ax.set_ylim(0, 9)
     
     plt.annotate('Top', xy=(4, 8.5), xytext=(4.5, 8.5))
     plt.annotate('Left', xy=(2, 6.5), xytext=(2.5, 6.5))
@@ -662,27 +679,30 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
 
     if plot_cost:
         iteration_cost(cost_list,n)
-       
+        
+        
+def cube_move_from_moveset(cube, desired_cube, moves):
+    """plots an input cube for different input operations provided"""
+    cost_list = [0] * (len(moves) + 1)
+    cost_list[0] = calculate_obj(cube, solved_cube)
+    plot_cube(cube)
+    i = 0
+    for move in moves:
+        i+=1
+        cube = cube_operations[move](cube)
+        cost_list[i] = calculate_obj(cube, solved_cube)
+        plot_cube(cube)
+        
+    
+    print (cost_list)
+    iteration_cost(cost_list, len(cost_list))
         
 
 #----------------------------------------------------------------------------#
 # Main Function
 #----------------------------------------------------------------------------#
 
-cube_mixed_1 = np.array([22, 18, 10, 11, 20, 13, 9, 24, 4, 8, 14, 5, 17, 15, 23, 7, 2, 1, 6, 21, 3, 19, 16, 12])
-# has scramble sequence ['bottomCW', 'backCW', 'backFT', 'backFT', 'leftCCW', 'frontCCW', 
-#                        'topCW', 'leftFT', 'bottomCCW', 'bottomCCW', 'rightFT', 'leftCW', 
-#                        'frontFT', 'leftCW', 'rightFT', 'bottomCCW', 'leftCCW', 'leftCW', 
-#                        'rightCW', 'frontFT']
 
-cube_mixed_2 = np.array([15, 5, 20, 8, 18, 22, 24, 13, 16, 17, 10, 9, 11, 1, 6, 21, 4, 3, 14, 19, 2, 7, 12, 23])
-
-
-cube_mixed_3 = np.array([1,8,3,4,5,6,7,2,9,10,24,12,13,17,15,16,14,18,19,20,21,22,23,11])
-
-
-solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
-    
 
 
 
@@ -690,8 +710,13 @@ solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 def main():
     
 
-    cube_solve_algorithm_random(cube_mixed_3, solved_cube, 300, plot_cost = True)
-        
+    # cube_solve_algorithm_1(cube_mixed_3, solved_cube, 300, plot_cost = True)
+    # plot_cube(cube_mixed_3)
+    moveset = [1,10,8,11,0,8,1,6,2,11]
+    
+    cube_move_from_moveset(cube_mixed_3, solved_cube, moveset)
+
+    
 
 
 main()
