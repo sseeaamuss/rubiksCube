@@ -75,11 +75,20 @@ cube_solved = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 # Cube plotting
 #----------------------------------------------------------------------------#
 
-
+fig, ax = None, None
 
 def plot_cube(cube, itr=None):
     """This function plots the 2d unfolded layout of the 2*2*2 cube"""
-    fig, ax = plt.subplots()
+    
+    global fig, ax
+    plt.ion()
+
+    # Initialize figure and axis once
+    if fig is None or ax is None:
+        fig, ax = plt.subplots()
+    else:
+        ax.clear()
+    
     
     for i in range(len(cube)):
         rectangle = patches.Rectangle((cube_x_pos[i] + 2, cube_y_pos[i]), 1, 1, linewidth=1, edgecolor='black', facecolor= color_map_2[cube[i]])
@@ -102,7 +111,8 @@ def plot_cube(cube, itr=None):
     plt.tick_params(axis='y', labelleft=False)    # Remove y-axis values
     
     # Show the plot
-    plt.show()
+    fig.canvas.draw()
+    plt.pause(0.01)
 
 
 def iteration_cost(cost_list, n):
@@ -299,7 +309,7 @@ bottomCCW = lambda cube: BOTTOM_CW.T @ cube
 
 backCW = lambda cube: BACK_CW @ cube
 backFT = lambda cube: BACK_CW @ BACK_CW @ cube
-backCCW = lambda cube: BACK_CW.TW @ cube
+backCCW = lambda cube: BACK_CW.T @ cube
 
 noturn = lambda cube: cube
 
@@ -426,8 +436,6 @@ def scramble_cube(cube, scramble_length=6, seed=None, plot = False):
 
     return cube, scramble_sequence
 
-
-
 #----------------------------------------------------------------------------#
 # Objective Function
 #----------------------------------------------------------------------------#
@@ -464,7 +472,6 @@ def cube_move_from_moveset(cube, desired_cube, moves, plot = False):
         iteration_cost(cost_list, len(cost_list))
     return cube
         
-
 def solve_local_min(cube, cube_desired):
     """checks for local minima and solves """
     min_1 = cube_move_from_moveset(cube_desired, cube_desired, [1,10,8,11,0,8,1,6,2,11])
@@ -478,7 +485,6 @@ def solve_local_min(cube, cube_desired):
         print("no match :(")
     
     return cube
-
 
 def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     
@@ -567,10 +573,10 @@ def solve_planning_prob_4(current_cube, cube_desired, cube_previous):
     reverse_operations = return_operations(return_inverted_operations(moveset))
     
     
-    print()
-    print("minimum cost after 3 moves:",min_value)
-    print("optimal moves", moveset)
-    print("moveset", operations_str)
+    # print()
+    # print("minimum cost after 3 moves:",min_value)
+    # print("optimal moves", moveset)
+    # print("moveset", operations_str)
     # print("inverted moveset", reverse_operations)
     
     return moveset
@@ -616,14 +622,13 @@ def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
     operations_str = return_operations(moveset)
     reverse_operations = return_operations(return_inverted_operations(moveset))
     
-    print()
-    print("minimum cost after 5 moves:",min_value)
-    print("optimal moves", moveset)
-    print("moveset", operations_str)
+    # print()
+    # print("minimum cost after 5 moves:",min_value)
+    # print("optimal moves", moveset)
+    # print("moveset", operations_str)
     # print("inverted moveset", reverse_operations)
     
     return moveset
-
 
 def solve_planning_prob_5_reduced(current_cube, cube_desired, cube_previous):
     
@@ -668,9 +673,7 @@ def solve_planning_prob_5_reduced(current_cube, cube_desired, cube_previous):
     
     return moveset
 
-
-
-    
+  
 def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
     """The first iteration of the cube solving algorithm with simple greedy horizon look ahead approach"""
     n = 1 # number of iterations
@@ -699,7 +702,6 @@ def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
 
     if plot_cost:
         iteration_cost(cost_list,n)
-
 
 
 def cube_solve_algorithm_2(initial_cube, desired_cube, nMax, plot_cost = False):
@@ -733,8 +735,7 @@ def cube_solve_algorithm_2(initial_cube, desired_cube, nMax, plot_cost = False):
     if plot_cost:
         iteration_cost(cost_list,n)
         
-        
-        
+             
 def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = False):
     """This solver implements random moves if solution has stagnated"""
     
@@ -780,7 +781,50 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
     if plot_cost:
         iteration_cost(cost_list,n)
         
+def bi_directional_search(initial_cube, desired_cube, nMax, plot_cost = False):
+
+    #initialising the beginning and end cube positions
+    forward_cube = initial_cube
+    previous_forward_cube = initial_cube
+    back_cube = desired_cube
+    previous_back_cube = desired_cube
+    n = 0
+
+    loop = True
+    while(loop):
+
+    #forward search
+        #calculate forward move set from planning problem
+        moveset_forward = solve_planning_prob_5(forward_cube, back_cube, cube_previous=previous_forward_cube)
+        previous_forward_cube = forward_cube
+
+        for i in range(len(moveset_forward)):
+            n+=1
+            forward_cube = cube_operations[moveset_forward[i]](forward_cube)
+            plot_cube(forward_cube, itr = n)
+
+        print(f"Moveset Forward: {moveset_forward}, Cost Function between forward & back: {calculate_obj(forward_cube, back_cube)}")
+    #back search
+
+        #calculate back move set from planning problem
+        moveset_back = solve_planning_prob_4(back_cube, forward_cube, cube_previous = previous_back_cube)
+        previous_back_cube = back_cube
+
+        for i in range(len(moveset_back)):
+            n+=1
+            back_cube = cube_operations[moveset_back[i]](back_cube)
+            plot_cube(back_cube, itr = n)
+
+        print(f"Moveset Back {moveset_back}, Cost Function between forward & back: {calculate_obj(forward_cube, back_cube)}")
+
+        if (calculate_obj(forward_cube, back_cube) == 0):
+            print("Pathway Found!")
+            loop = False
         
+        if (n >= nMax):
+            print(f"Reached nMax = {n}")
+            loop = False
+
 
 #----------------------------------------------------------------------------#
 # Main Function
@@ -793,7 +837,6 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
 
 def main():
     
-    cube_solve_algorithm_1(cube_mixed_1, cube_solved, 50, plot_cost=True)
-
+    bi_directional_search(cube_mixed_1, cube_solved, 10000)
 
 main()
