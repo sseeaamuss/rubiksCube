@@ -524,10 +524,10 @@ def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     reverse_operations = return_operations(return_inverted_operations(moveset))
     
     
-    print()
-    print("minimum cost after 3 moves:",min_value)
-    print("optimal moves", moveset)
-    print("moveset", operations_str)
+    # print()
+    # print("minimum cost after 3 moves:",min_value)
+    # print("optimal moves", moveset)
+    # print("moveset", operations_str)
     # print("inverted moveset", reverse_operations)
     
     return moveset
@@ -807,7 +807,7 @@ def bi_directional_search(initial_cube, desired_cube, nMax, plot_cost = False):
     #back search
 
         #calculate back move set from planning problem
-        moveset_back = solve_planning_prob_4(back_cube, forward_cube, cube_previous = previous_back_cube)
+        moveset_back = solve_planning_prob_5(back_cube, forward_cube, cube_previous = previous_back_cube)
         previous_back_cube = back_cube
 
         for i in range(len(moveset_back)):
@@ -837,6 +837,11 @@ def bi_directional_search(initial_cube, desired_cube, nMax, plot_cost = False):
 
 def main():
     
-    bi_directional_search(cube_mixed_1, cube_solved, 10000)
+
+    cube_mixed_4 = [17,10,16,12,8,20,6,19,22,18,21,14,15,13,2,1,7,24,3,23,9,5,11,4] # solvable
+
+
+
+    bi_directional_search(cube_mixed_3, cube_solved, 10000)
 
 main()
