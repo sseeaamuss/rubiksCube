@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import random
+import time
 
 #----------------------------------------------------------------------------#
 # Variables
@@ -65,7 +66,7 @@ cube_mixed_2 = np.array([15,5,20,8,18,22,24,13,16,17,10,9,11,1,6,21,4,3,14,19,2,
 cube_mixed_3 = np.array([1,8,3,4,5,6,7,2,9,10,24,12,13,17,15,16,14,18,19,20,21,22,23,11])
 
 
-solved_cube = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
+cube_solved = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]) # desired cube solution
     
 
 
@@ -278,27 +279,27 @@ BACK_CW = np.array([ [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],#1 TOP
 #----------------------------------------------------------------------------#
 topCW = lambda cube: TOP_CW @ cube
 topFT = lambda cube: TOP_CW @ TOP_CW @ cube
-topCCW = lambda cube: TOP_CW @ TOP_CW @ TOP_CW @ cube
+topCCW = lambda cube: TOP_CW.T @ cube
 
 leftCW = lambda cube: LEFT_CW @ cube
 leftFT = lambda cube: LEFT_CW @ LEFT_CW @ cube
-leftCCW = lambda cube: LEFT_CW @ LEFT_CW @ LEFT_CW @ cube
+leftCCW = lambda cube: LEFT_CW.T @ cube
 
 frontCW = lambda cube: FRONT_CW @ cube
 frontFT = lambda cube: FRONT_CW @ FRONT_CW @ cube
-frontCCW = lambda cube: FRONT_CW @ FRONT_CW @ FRONT_CW @ cube
+frontCCW = lambda cube: FRONT_CW.T @ cube
 
 rightCW = lambda cube: RIGHT_CW @ cube
 rightFT = lambda cube: RIGHT_CW @ RIGHT_CW @ cube
-rightCCW = lambda cube: RIGHT_CW @ RIGHT_CW @ RIGHT_CW @ cube
+rightCCW = lambda cube: RIGHT_CW.T @ cube
 
 bottomCW = lambda cube: BOTTOM_CW @ cube
 bottomFT = lambda cube: BOTTOM_CW @ BOTTOM_CW @ cube
-bottomCCW = lambda cube: BOTTOM_CW @ BOTTOM_CW @ BOTTOM_CW @ cube
+bottomCCW = lambda cube: BOTTOM_CW.T @ cube
 
 backCW = lambda cube: BACK_CW @ cube
 backFT = lambda cube: BACK_CW @ BACK_CW @ cube
-backCCW = lambda cube: BACK_CW @ BACK_CW @ BACK_CW @ cube
+backCCW = lambda cube: BACK_CW.TW @ cube
 
 noturn = lambda cube: cube
 
@@ -323,6 +324,23 @@ cube_operations = {
     17: backCCW,
     18: noturn
 }
+
+cube_operations_reduced = {
+    0: topCW,
+    1: topFT,
+    2: leftCW,
+    3: leftFT,
+    4: frontCW,
+    5: frontFT,
+    6: rightCW,
+    7: rightFT,
+    8: bottomCW,
+    9: bottomFT,
+    10: backCW,
+    11: backFT,
+    12: noturn
+}
+
 
 cube_operations_str = {
     0: 'topCW',
@@ -447,10 +465,6 @@ def cube_move_from_moveset(cube, desired_cube, moves, plot = False):
     return cube
         
 
-
-
-
-
 def solve_local_min(cube, cube_desired):
     """checks for local minima and solves """
     min_1 = cube_move_from_moveset(cube_desired, cube_desired, [1,10,8,11,0,8,1,6,2,11])
@@ -468,7 +482,7 @@ def solve_local_min(cube, cube_desired):
 
 def solve_planning_prob_3(current_cube, cube_desired, cube_previous):
     
-   
+
     n = 0
     min_value = 24
     moveset = np.zeros(3)
@@ -610,6 +624,52 @@ def solve_planning_prob_5(current_cube, cube_desired, cube_previous):
     
     return moveset
 
+
+def solve_planning_prob_5_reduced(current_cube, cube_desired, cube_previous):
+    
+    n = 0
+    min_value = 24
+    moveset = np.zeros(5)
+
+    for i in range(len(cube_operations_reduced)):
+        for j in range(len(cube_operations_reduced)):
+            for k in range(len(cube_operations_reduced)):
+                for l in range(len(cube_operations_reduced)):
+                    for m in range(len(cube_operations_reduced)):
+                        n += 1
+                        
+                        cube_update = cube_operations_reduced[i](current_cube)
+                        cube_update = cube_operations_reduced[j](cube_update)
+                        cube_update = cube_operations_reduced[k](cube_update) 
+                        cube_update = cube_operations_reduced[l](cube_update)
+                        cube_update = cube_operations_reduced[m](cube_update)
+                        cost = calculate_obj(cube_update, cube_desired)
+                        
+                        cube_difference_current = calculate_obj(cube_update, current_cube)
+                        cube_difference_previous = calculate_obj(cube_update, cube_previous)
+                        
+                        if (cost != 0) and (cube_difference_current == 0):
+                            continue
+                        elif (cost !=0) and (cube_difference_previous == 0):
+                            continue
+                        else:
+                            if cost < min_value:
+                                min_value = cost
+                                moveset[0] = i
+                                moveset[1] = j
+                                moveset[2] = k
+                                moveset[3] = l
+                                moveset[4] = m
+                         
+                # print("calculating",n, "out of", 19**3, "moves    move(" ,i,",",j,",",k,")  cost: ",cost)
+
+    operations_str = return_operations(moveset)
+    reverse_operations = return_operations(return_inverted_operations(moveset))
+    
+    return moveset
+
+
+
     
 def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
     """The first iteration of the cube solving algorithm with simple greedy horizon look ahead approach"""
@@ -623,7 +683,7 @@ def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
     while loop:
         
         #Solving Planning Problem
-        moveset = solve_planning_prob_4(current_cube, desired_cube, previous_cube)
+        moveset = solve_planning_prob_5_reduced(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
         
         #Performing Planning Problem Moves
@@ -733,16 +793,7 @@ def cube_solve_algorithm_random(initial_cube, desired_cube, nMax, plot_cost = Fa
 
 def main():
     
-
-    cube_solve_algorithm_random(cube_mixed_1 , solved_cube, 100, plot_cost = True)
-    # plot_cube(cube_mixed_3)
-    # moveset= [10, 1,8,11,6,2,7,0,8,11]
-    
-    # print(return_inverted_operations(moveset))
-    
-    # cube_move_from_moveset(solved_cube, solved_cube, moveset)
-
-    
+    cube_solve_algorithm_1(cube_mixed_1, cube_solved, 50, plot_cost=True)
 
 
 main()
