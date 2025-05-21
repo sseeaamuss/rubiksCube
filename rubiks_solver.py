@@ -789,6 +789,7 @@ def bi_directional_search(initial_cube, desired_cube, nMax, plot_cost = False):
     back_cube = desired_cube
     previous_back_cube = desired_cube
     n = 0
+    
 
     loop = True
     while(loop):
@@ -826,6 +827,73 @@ def bi_directional_search(initial_cube, desired_cube, nMax, plot_cost = False):
             loop = False
 
 
+def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = False):
+
+    #initialising the beginning and end cube positions
+    forward_cube = initial_cube
+    previous_forward_cube = initial_cube
+    back_cube = desired_cube
+    previous_back_cube = desired_cube
+    n = 0
+    stagnation = 0
+    
+
+    loop = True
+    while(loop):
+
+    #forward search
+        #calculate forward move set from planning problem
+        moveset_forward = solve_planning_prob_4(forward_cube, back_cube, cube_previous=previous_forward_cube)
+        previous_forward_cube = forward_cube
+
+        for i in range(len(moveset_forward)):
+            n+=1
+            forward_cube = cube_operations[moveset_forward[i]](forward_cube)
+            plot_cube(forward_cube, itr = n)
+
+        print(f"Moveset Forward: {moveset_forward}, Cost Function between forward & back: {calculate_obj(forward_cube, back_cube)}")
+    #back search
+
+        
+        if (stagnation > 2):
+            stagnation = 0
+            print("lets mix things up!")
+            __, moveset_back = scramble_cube(back_cube, scramble_length = 8)
+            previous_back_cube = back_cube
+            for i in range(len(moveset_back)):
+                n+=1
+                back_cube = cube_operations[moveset_back[i]](back_cube)
+                plot_cube(back_cube, itr = n)
+
+        #calculate back move set from planning problem
+        moveset_back = solve_planning_prob_4(back_cube, forward_cube, cube_previous = previous_back_cube)
+        previous_back_cube = back_cube
+
+        for i in range(len(moveset_back)):
+            n+=1
+            back_cube = cube_operations[moveset_back[i]](back_cube)
+            plot_cube(back_cube, itr = n)
+
+        print(f"Moveset Back {moveset_back}, Cost Function between forward & back: {calculate_obj(forward_cube, back_cube)}")
+
+
+        stagnation += 1
+
+
+        if (calculate_obj(forward_cube, back_cube) == 0):
+            print("Pathway Found!")
+            loop = False
+        
+        if (n >= nMax):
+            print(f"Reached nMax = {n}")
+            loop = False
+
+        
+
+
+
+
+
 #----------------------------------------------------------------------------#
 # Main Function
 #----------------------------------------------------------------------------#
@@ -842,6 +910,6 @@ def main():
 
 
 
-    bi_directional_search(cube_mixed_3, cube_solved, 10000)
+    bi_directional_search_random(cube_mixed_3, cube_solved, 10000)
 
 main()
