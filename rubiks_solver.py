@@ -837,6 +837,9 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
     n = 0
     stagnation = 0
     
+    forward_moves = np.array([])
+    reverse_moves = np.array([])
+
 
     loop = True
     while(loop):
@@ -844,6 +847,7 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
     #forward search
         #calculate forward move set from planning problem
         moveset_forward = solve_planning_prob_4(forward_cube, back_cube, cube_previous=previous_forward_cube)
+        forward_moves = np.append(forward_moves, moveset_forward)
         previous_forward_cube = forward_cube
 
         for i in range(len(moveset_forward)):
@@ -859,6 +863,7 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
             stagnation = 0
             print("lets mix things up!")
             __, moveset_back = scramble_cube(back_cube, scramble_length = 8)
+            reverse_moves = np.append(reverse_moves, moveset_back)
             previous_back_cube = back_cube
             for i in range(len(moveset_back)):
                 n+=1
@@ -867,6 +872,7 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
 
         #calculate back move set from planning problem
         moveset_back = solve_planning_prob_4(back_cube, forward_cube, cube_previous = previous_back_cube)
+        reverse_moves = np.append(reverse_moves, moveset_back)
         previous_back_cube = back_cube
 
         for i in range(len(moveset_back)):
@@ -888,6 +894,9 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
             print(f"Reached nMax = {n}")
             loop = False
 
+    moveset = np.append(forward_moves, return_inverted_operations(reverse_moves))
+
+    print(f"The full moveset for solving the cube: {moveset}")
         
 
 
@@ -897,8 +906,6 @@ def bi_directional_search_random(initial_cube, desired_cube, nMax, plot_cost = F
 #----------------------------------------------------------------------------#
 # Main Function
 #----------------------------------------------------------------------------#
-
-
 
 
 
