@@ -77,11 +77,12 @@ cube_solved = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 
 fig, ax = None, None
 
-def plot_cube(cube, itr=None):
+def plot_cube(cube, itr=None, single_plot = False):
     """This function plots the 2d unfolded layout of the 2*2*2 cube"""
     
     global fig, ax
-    plt.ion()
+    if not single_plot:
+        plt.ion()
 
     # Initialize figure and axis once
     if fig is None or ax is None:
@@ -111,8 +112,13 @@ def plot_cube(cube, itr=None):
     plt.tick_params(axis='y', labelleft=False)    # Remove y-axis values
     
     # Show the plot
-    fig.canvas.draw()
-    plt.pause(0.01)
+    
+    if (single_plot):
+        plt.show()
+    
+    else:
+        fig.canvas.draw()
+        plt.pause(0.01)
 
 
 def iteration_cost(cost_list, n):
@@ -686,7 +692,7 @@ def cube_solve_algorithm_1(initial_cube, desired_cube, nMax, plot_cost = False):
     while loop:
         
         #Solving Planning Problem
-        moveset = solve_planning_prob_5_reduced(current_cube, desired_cube, previous_cube)
+        moveset = solve_planning_prob_3(current_cube, desired_cube, previous_cube)
         previous_cube = current_cube
         
         #Performing Planning Problem Moves
@@ -916,7 +922,7 @@ def main():
     cube_mixed_4 = [17,10,16,12,8,20,6,19,22,18,21,14,15,13,2,1,7,24,3,23,9,5,11,4] # solvable
 
 
-
-    bi_directional_search_random(cube_mixed_3, cube_solved, 10000)
+    plot_cube(cube_mixed_2, single_plot = True)
+    # cube_solve_algorithm_1(cube_mixed_2, cube_solved, 10000)
 
 main()
